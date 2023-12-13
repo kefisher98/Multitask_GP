@@ -113,7 +113,11 @@ python calc_organic_cost.py # compute energy of 10 representative organic molecu
 
 The water example also uses CCSD(T) training data from [https://github.com/jmbowma/q-AQUA](https://github.com/jmbowma/q-AQUA). 
 
-Training data for the organic molecule example was generated as described in 
+Training data for the organic molecule example can be found at
+
+Duan, C., Fisher, K., & Kulik, H. (2023). kefisher98/IP_EA_deltaSCF: Ionization Potential, Electron Affinity, and Delta SCF for Small Organic Molecules (DTF_dataset) Data set. Zenodo. [https://doi.org/10.5281/zenodo.10215421](https://doi.org/10.5281/zenodo.10215421)
+
+The data generation process is described in
 
 C. Duan, S. Chen, M. G. Taylor, F. Liu, and H. J. Kulik, “Machine learning to tame divergent density functional approximations: a new path to consensus materials design principles,” Chem. Sci. 12, 13021–13036 (2021). [https://doi.org/10.1039/D1SC03701C ](https://doi.org/10.1039/D1SC03701C). 
 
