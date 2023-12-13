@@ -10,6 +10,10 @@ The paper considers two examples:
 
 For each example, we fit inference models to make more efficient predictions of our quantities of interest. In this section, we will summarize the contents of the directory and the role they play in this task. The contents of the data subdirectory are described within their own README file. In the following sections, we will provide more detail on how to run each example. Within this directory, we have
 
+* Scripts to retrieve additional training data
+
+  - retrieve_data.jl
+  
 * Scripts to train and test inference models
 
   - run_water.jl
@@ -57,6 +61,7 @@ With this setup, we train inference models and reproduce the plots of the paper 
 
 ```bash
 julia --project=@. -e "import Pkg; Pkg.instantiate()"  # Install dependencies
+julia retrieve_data.jl # retrieve and format training data
 julia run_water.jl # generate data from water trimer 3 body energy example
 julia run_organic.jl      # generate data from organic molecules ionization potential example
 julia make_plots.jl  # Generate plots
@@ -76,6 +81,7 @@ Optimized hyperparameters corresponding to each quantum chemisty method consider
 
 ```bash
 julia --project=@. -e "import Pkg; Pkg.instantiate()"  # Install dependencies
+julia retrieve_data.jl # retrieve and format training data
 julia optimize_water.jl # create .CSV files with optimized kernel hyperparameters for the water trimer 3 body energy example
 julia optimize_organic.jl      # create .CSV files with optimized kernel hyperparameters for the organic molecules ionization potential example
 ```
@@ -86,10 +92,17 @@ julia optimize_organic.jl      # create .CSV files with optimized kernel hyperpa
 
 ## Reproducing Training Data
 
-The code in this section requires an installation of
-[Python 3.9.16](https://www.python.org/downloads/) and of [ASE](https://wiki.fysik.dtu.dk/ase/).
+The code in this section requires an installation of [Julia 1.9.4](https://julialang.org/downloads/#current_stable_release),
+[Python 3.9.16](https://www.python.org/downloads/), and of [ASE](https://wiki.fysik.dtu.dk/ase/).
 
-The following code will reproduce density functional theory (DFT) training data for the water example. The final two scripts run 10 DFT and CCSD(T) computations for each example to produce a cost model.
+First, run the code to retrieve additional training data:
+
+```bash
+julia --project=@. -e "import Pkg; Pkg.instantiate()"  # Install dependencies
+julia retrieve_data.jl # retrieve and format training data
+```
+
+Then, the following code will reproduce density functional theory (DFT) training data for the water example. The final two scripts run 10 DFT and CCSD(T) computations for each example to produce a cost model.
 
 ```bash
 pip3 install -r requirements.txt  # Install dependencies
