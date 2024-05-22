@@ -1,6 +1,7 @@
 ## Contents
 
-This directory contains the data and code necessary for reproducing the results in *TBD*.
+This directory contains the data and code necessary for reproducing the results in *Multitask methods for predicting molecular properties from
+heterogeneous data*.
 
 The paper considers two examples:
 
