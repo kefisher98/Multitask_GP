@@ -8,7 +8,20 @@ The paper considers two examples:
 
 2. Prediction of the ionization potential of small organic molecules
 
-For each example, we fit inference models to make more efficient predictions of our quantities of interest. In this section, we will summarize the contents of the directory and the role they play in this task. The contents of the data subdirectory are described within their own README file. In the following sections, we will provide more detail on how to run each example. Within this directory, we have
+For each example, we fit inference models to make more efficient predictions of our quantities of interest. In this section, we will summarize the contents of the directory and the role they play in this task. The data folder contains
+
+* Training data which is not published elsewhere (code is provided to retrieve the remaining training data)
+
+* Results from hyperparameter optimization
+
+* Results from running the multitask test cases:
+    
+    - prediction error statistics
+ 
+    - model training and testing time
+      
+
+The files in the data subdirectory are described in more detail within their own README file. In the following sections, we will provide more detail on how to run each example. Within this directory, we have
 
 * Scripts to retrieve additional training data
 
