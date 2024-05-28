@@ -5,6 +5,7 @@ using Random
 using CSV
 using DataFrames
 using Stheno
+using Combinatorics
 using Zygote: gradient
 using Optimization
 using OptimizationOptimJL
@@ -20,7 +21,6 @@ atoms = pyimport("ase")
 # local files
 path  = @__DIR__
 include( path*"/common.jl")
-include( path*"/waterSupport.jl")
 
 # =========================================================
 # Optimization Options
@@ -45,7 +45,7 @@ levels = ( primary   =  "CCSDT",
 files = ( data         = path*"/data/trimer_dft.csv",       # prediction data for all molecules and levels of theory
           augment_data = path*"/data/trimer_ccsdt.csv",     # additional primary task prediction data
           xyz          = path*"/data/3b_data.xyz",          # extended xyz file containing all molecular systems
-          output       = path*"/data/water_all_params.csv", # full set of all hyperparameters obtained from optimization
+          output       = path*"/data/test.csv",#path*"/data/water_all_params.csv", # full set of all hyperparameters obtained from optimization
           params       = path*"/data/water_params.csv",     # final parameters for inference
           opt_inds     = path*"/data/trimer_inds.csv",      # indices in data that are set aside for optimization
          )
@@ -90,8 +90,8 @@ tasks = []
 for seed in my_seeds
 
     Random.seed!(seed)
-    #shuffled = sample(1:length(inds), length(inds), replace=false)
-    shuffled = sample(1:length(inds), 24, replace=false)
+    shuffled = sample(1:length(inds), length(inds), replace=false)
+    #shuffled = sample(1:length(inds), 24, replace=false)
 
     # primary only
     results = mle_mae( X[:,shuffled], 

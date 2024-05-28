@@ -11,11 +11,13 @@ using Distributions
 using Plots
 using Plots.Measures
 using Combinatorics
+using LaTeXStrings
 
 # import Python libraries
 using PyCall
 d     = pyimport("dscribe")
 dsd   = pyimport("dscribe.descriptors")
+dsk   = pyimport("dscribe.kernels")
 ase   = pyimport("ase.io")
 atoms = pyimport("ase")
 
@@ -48,10 +50,13 @@ levels = ( primary   =  "CCSDT",
 
 # data, xyz, params, augment data, optimization inds
 
-files = ( water_output   = path*"/data/water_",                    # location of water output data
-          water_figures  = path*"/figures/water_",                 # initial path and string for water figures
+files = ( water_output     = path*"/data/water_",                  # location of water output data
+          water_figures    = path*"/figures/water_",               # initial path and string for water figures
+          organic_xyz      = path*"/data/organic_molecules.xyz",   # coordinates for organic systems
           organic_output   = path*"/data/organic_",                # location of organic output data
           organic_figures  = path*"/figures/organic_",             # initial path and string for organic figures
+          optimized        = path*"/data/test_optimization.csv",   # results of optimization test       
+          SOAP             = path*"/data/test_SOAP.csv"            # results of SOAP test  
          )
 
 # ========================================================
@@ -90,10 +95,12 @@ for set in ["C","A","CA"]
     savefig( p3t,  files.water_figures*"3level_"*set*"T.pdf" )
 end
 
+p2  = plot_two_tasks( results; datasets="CA", arrow=true )
+savefig( p2,  files.water_figures*"arrow.pdf" )
 
 
 # compare cases with secondary C data to equivalent cases with out
-cs  = compare_S_power( results; datasets="CA", lowest="PBE", get_cost=water_cost, include_single=false, range=[0.,0.03] )
+cs  = compare_S_power( results; datasets="CA",  lowest="PBE", get_cost=water_cost, include_single=false, range=[0.,0.03] )
 cst = compare_S_power( results; datasets="CAT", lowest="PBE", get_cost=water_cost, include_single=false, range=[0.,0.03] )
 savefig( cs,  files.water_figures*"ca_versus_a.pdf" )
 savefig( cst, files.water_figures*"cat_versus_at.pdf" )
@@ -135,4 +142,35 @@ for a in [0.,0.5,1.]
 end
 
 scalefontsizes(0.5)
+
+
+# ========================================================
+# Appendix Figures
+# ========================================================
+
+# Kernel comparison
+inds = sample( collect(1:2939), 150, replace=false  )
+ats  = [ ase.read( files.organic_xyz, index=string(i-1) ) for i in inds ]
+
+
+mat                                 = distancePairs(   ats, path*"/data/"; rcut=4, nmax=8, lmax=8, sigma=0.4   )
+s_all, s_1, s_2, s_3, ρ_1, ρ_2, ρ_3 = scatterDistance( mat; title="", size=(800,500), color=:slateblue )
+savefig( s_all, files.organic_figures*"global_features.pdf" )
+
+
+
+
+# test optimization
+scalefontsizes(2)
+figs = plot_errors( files.optimized, [10,45,80,115,150] )
+savefig( figs[1], files.water_figures*"CCSDT.pdf" )
+savefig( figs[2], files.water_figures*"SCAN.pdf" )
+scalefontsizes(0.5)
+
+# heatmap of SOAP results
+scalefontsizes(1.6)
+heat = SOAPheat( files.SOAP; colname="MAE ip GP, Average Features")
+savefig( heat, files.organic_figures*"SOAP_ip_MAE.pdf" )
+scalefontsizes(1/1.6)
+
 

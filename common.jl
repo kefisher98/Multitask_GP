@@ -608,7 +608,7 @@ end
 #                       name = name of file to which to save results
 #        θ_init    - initial value of variable that will be optimized
 #        lower     - lower bound on variable that will be optimized
-#        upper     - upper bound on variable that will be optimized
+#        udata[shuffled,levels.primary]pper     - upper bound on variable that will be optimized
 #        optAlg    - optimization algorithm
 #        grad      - method for computing gradient
 
@@ -617,15 +617,16 @@ end
 
 
 function mle_mae( X, Y, noise, context; 
-                  θ_init=[1.], lower=[1e-10], upper=[100.], optAlg=LBFGS(), grad=Optimization.AutoZygote() )
+                  θ_init=[1.], lower=[1e-10], upper=[100.], optAlg=LBFGS(), grad=Optimization.AutoZygote(), maxtime=Inf )
 
     # lengthscale estimate (maximum likelihood)
-    mle = max_likelihood( X, Y, noise; θ_init, lower, upper, optAlg, grad )
-
+    mle   = max_likelihood( X, Y, noise; θ_init, lower, upper, optAlg, grad )
+    
     if mle.converged
-        # variance estimation (minimize mean absolute error)
-        mae = min_mae_var( X, Y, mle.ℓ, noise; optAlg, grad  )
 
+        # variance estimation (minimize mean absolute error)
+        mae   = min_mae_var( X, Y, mle.ℓ, noise; optAlg, grad, maxtime  )
+        
         if mae.converged && mae.v[1] < 1e6
             addToFile( DataFrame( task=context.task, 
                                   variance=mae.v, 
@@ -633,9 +634,9 @@ function mle_mae( X, Y, noise, context;
                                   lengthscale=mle.ℓ, 
                                   rho=context.rho, 
                                   seed=context.seed, 
-                                  objective_mle=mle.objective, 
-                                  objective_mae=mae.objective  ), context.name  )
-            return ( converged=true, v=mae.v, v_mle=mle.v,  ℓ=mle.ℓ, mle=mle.objective, mae=mae.objective  )
+                                  objective_mle=mle.objective,
+                                  objective_mae=mae.objective ), context.name  )
+            return ( converged=true, v=mae.v, v_mle=mle.v,  ℓ=mle.ℓ, mle=mle.objective, mae=mae.objective )
         end
     end
     return ( converged=false,)
@@ -705,7 +706,7 @@ end
 
 function min_mae_var( X, Y, ℓ, noise; 
                       θ_init=[1.], lower=[1e-10], upper=[100.], 
-                      optAlg=LBFGS(), grad=Optimization.AutoZygote(), report=true  )
+                      optAlg=LBFGS(), grad=Optimization.AutoZygote(), report=true, maxtime=Inf  )
 
     if typeof(optAlg) <: LBFGS || typeof(optAlg) <: BFGS
         convergence = Optim.converged
@@ -724,7 +725,7 @@ function min_mae_var( X, Y, ℓ, noise;
 
     # optimize variance 
     params = (X=X, Y=Y, μ=mean(Y[train]), ℓ=ℓ, noise=noise, train=train, test=test)
-    v      = optParams(mae_var, params, θ_init, lower, upper; optAlg, grad)
+    v      = optParams(mae_var, params, θ_init, lower, upper; optAlg, grad, maxtime)
 
     # report to audience
     if report
@@ -751,14 +752,14 @@ end
 
 # Output: solution of optimization problem
 
-function optParams(objective, params, θ_init, lower, upper; optAlg=LBFGS(), grad=Optimization.AutoZygote())
+function optParams(objective, params, θ_init, lower, upper; optAlg=LBFGS(), grad=Optimization.AutoZygote(), maxtime=Inf)
 
     # Define optimization routing
     f    = OptimizationFunction(objective, grad)
     prob = OptimizationProblem(f, θ_init, params; lb=lower, ub=upper)
 
     # solve with optAlg algorithm
-    sol = solve(prob, optAlg)
+    sol = solve(prob, optAlg; maxtime)
 
     return sol
 
@@ -1055,8 +1056,6 @@ end
 ###############
 
 # Description: Function to train a Stheno GP model and record performance. Specifically, this model handles cases where we both have a vector of test data points and are making a prediction of a difference/delta.
-
-
 # Inputs: name           - file name (including path) where inference results will be saved
 #         model          - GP model to use; one of [model_delta, model_SE]
 #         θ              - NamedTuple with parameters of GP model
@@ -1157,7 +1156,7 @@ end
 
 function set_up( ; files::NamedTuple, levels::NamedTuple, seed::Int, target::Number,
                    feature_method=average_feature, atom_positions=getNonHydrogenPositions,
-                   species, rcut=10, sigma=0.4, nmax=8, lmax=8  )
+                   species, rcut=10, sigma=0.4, nmax=8, lmax=8, custom_heading=false  )
 
     # define settings features
     tasks       = vcat( levels.primary, levels.secondary )
@@ -1175,12 +1174,16 @@ function set_up( ; files::NamedTuple, levels::NamedTuple, seed::Int, target::Num
     params = CSV.read( files.params, DataFrame )
 
     # initialize output
-    headers = Symbol.( vcat( [:levels, :lowest, :high_level, :low_level, :method, :datasets, :task_fractions,
-                              :train_time, :test_time],
-                             [[ "mae_", "median_ae_", "minimum_ae_", "maximum_ae_" ].*s
-                                 for s in ["error", "relative", "std"]]...,
-                             [["pearson_", "spearman_","kendall_" ].*s
-                                for s in ["error", "std"]]... ) )
+    if custom_heading===false
+        headers = Symbol.( vcat( [:levels, :lowest, :high_level, :low_level, :method, :datasets, :task_fractions,
+                                  :train_time, :test_time],
+                                 [[ "mae_", "median_ae_", "minimum_ae_", "maximum_ae_" ].*s
+                                     for s in ["error", "relative", "std"]]...,
+                                 [["pearson_", "spearman_","kendall_" ].*s
+                                    for s in ["error", "std"]]... ) )
+    else
+        headers = Symbol.( custom_heading )
+    end
     makeFile( headers, guide.filename )
 
     return GP_settings, Δ_settings, guide, params
