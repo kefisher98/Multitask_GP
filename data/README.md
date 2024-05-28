@@ -1,6 +1,6 @@
 ## Contents of Directory
 
-* Training Data
+* Training Data (files are described as they will appear after calling Multitask_GP/retrieve_data.jl)
 
   - 3b_data.xyz - ASE readable extended xyz file with all water trimer geometries
 

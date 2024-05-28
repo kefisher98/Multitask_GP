@@ -1,6 +1,7 @@
 ## Contents
 
-This directory contains the data and code necessary for reproducing the results in *TBD*.
+This directory contains the data and code necessary for reproducing the results in *Multitask methods for predicting molecular properties from
+heterogeneous data*.
 
 The paper considers two examples:
 
@@ -8,8 +9,25 @@ The paper considers two examples:
 
 2. Prediction of the ionization potential of small organic molecules
 
-For each example, we fit inference models to make more efficient predictions of our quantities of interest. In this section, we will summarize the contents of the directory and the role they play in this task. The contents of the data subdirectory are described within their own README file. In the following sections, we will provide more detail on how to run each example. Within this directory, we have
+For each example, we fit inference models to make more efficient predictions of our quantities of interest. In this section, we will summarize the contents of the directory and the role they play in this task. The data folder contains
 
+* Training data which is not published elsewhere (code is provided to retrieve the remaining training data)
+
+* Results from hyperparameter optimization
+
+* Results from running the multitask test cases:
+    
+    - prediction error statistics
+ 
+    - model training and testing time
+      
+
+The files in the data subdirectory are described in more detail within their own README file. In the following sections, we will provide more detail on how to run each example. Within this directory, we have
+
+* Scripts to retrieve additional training data
+
+  - retrieve_data.jl
+  
 * Scripts to train and test inference models
 
   - run_water.jl
@@ -57,6 +75,7 @@ With this setup, we train inference models and reproduce the plots of the paper 
 
 ```bash
 julia --project=@. -e "import Pkg; Pkg.instantiate()"  # Install dependencies
+julia retrieve_data.jl # retrieve and format training data
 julia run_water.jl # generate data from water trimer 3 body energy example
 julia run_organic.jl      # generate data from organic molecules ionization potential example
 julia make_plots.jl  # Generate plots
@@ -76,6 +95,7 @@ Optimized hyperparameters corresponding to each quantum chemisty method consider
 
 ```bash
 julia --project=@. -e "import Pkg; Pkg.instantiate()"  # Install dependencies
+julia retrieve_data.jl # retrieve and format training data
 julia optimize_water.jl # create .CSV files with optimized kernel hyperparameters for the water trimer 3 body energy example
 julia optimize_organic.jl      # create .CSV files with optimized kernel hyperparameters for the organic molecules ionization potential example
 ```
@@ -86,10 +106,17 @@ julia optimize_organic.jl      # create .CSV files with optimized kernel hyperpa
 
 ## Reproducing Training Data
 
-The code in this section requires an installation of
-[Python 3.9.16](https://www.python.org/downloads/) and of [ASE](https://wiki.fysik.dtu.dk/ase/).
+The code in this section requires an installation of [Julia 1.9.4](https://julialang.org/downloads/#current_stable_release),
+[Python 3.9.16](https://www.python.org/downloads/), and of [ASE](https://wiki.fysik.dtu.dk/ase/).
 
-The following code will reproduce density functional theory (DFT) training data for the water example. The final two scripts run 10 DFT and CCSD(T) computations for each example to produce a cost model.
+First, run the code to retrieve additional training data:
+
+```bash
+julia --project=@. -e "import Pkg; Pkg.instantiate()"  # Install dependencies
+julia retrieve_data.jl # retrieve and format training data
+```
+
+Then, the following code will reproduce density functional theory (DFT) training data for the water example. The final two scripts run 10 DFT and CCSD(T) computations for each example to produce a cost model.
 
 ```bash
 pip3 install -r requirements.txt  # Install dependencies
@@ -100,7 +127,11 @@ python calc_organic_cost.py # compute energy of 10 representative organic molecu
 
 The water example also uses CCSD(T) training data from [https://github.com/jmbowma/q-AQUA](https://github.com/jmbowma/q-AQUA). 
 
-Training data for the organic molecule example was generated as described in 
+Training data for the organic molecule example can be found at
+
+Duan, C., Fisher, K., & Kulik, H. (2023). kefisher98/IP_EA_deltaSCF: Ionization Potential, Electron Affinity, and Delta SCF for Small Organic Molecules (DTF_dataset) Data set. Zenodo. [https://doi.org/10.5281/zenodo.10215421](https://doi.org/10.5281/zenodo.10215421)
+
+The data generation process is described in
 
 C. Duan, S. Chen, M. G. Taylor, F. Liu, and H. J. Kulik, “Machine learning to tame divergent density functional approximations: a new path to consensus materials design principles,” Chem. Sci. 12, 13021–13036 (2021). [https://doi.org/10.1039/D1SC03701C ](https://doi.org/10.1039/D1SC03701C). 
 
